@@ -224,9 +224,10 @@ HTTP/1.1 409 Conflict
 
 ## Creates a new history.
 
-When creating a new history the user must send the history year, period, course, conclusionLimit and conclusionDate.
-The history code is used for identifying and must be unique in the system. If a existing code is sent to this method,
-a 409 error will be raised. And if no year, or period or course is sent, a 400 error will be raised.
+When creating a new history the user must send the history year, period, course, modality, conclusionLimit and
+conclusionDate. The history code is used for identifying and must be unique in the system. If a existing code is sent
+to this method, a 409 error will be raised. And if no year, or period, or course or modality is sent, a 400 error
+will be raised.
 
 	POST /users/:user/histories
 
@@ -237,6 +238,7 @@ a 409 error will be raised. And if no year, or period or course is sent, a 400 e
 | year			| Number			|  History year.							|
 | period			| String			|  History period.							|
 | course			| String			|  History course.							|
+| modality			| String			|  History modality.							|
 | conclusionLimit			| Date			| **optional** History conclusionLimit.							|
 | conclusionDate			| Date			| **optional** History conclusionDate.							|
 
@@ -256,7 +258,8 @@ HTTP/1.1 400 Bad Request
 {
  "year": "required",
  "period": "required",
- "course": "required"
+ "course": "required",
+ "modality": "required"
 }
 
 ```
@@ -289,7 +292,9 @@ HTTP/1.1 200 OK
  "year": 2012,
  "period": "1",
  "course": "42",
+ "modality": "AA",
  "conclusionLimit": "2017-07-01T12:22:25.058Z",
+ "efficiencyCoefficient": 0.98,
  "createdAt": "2014-07-01T12:22:25.058Z",
  "updatedAt": "2014-07-01T12:22:25.058Z"
 }
@@ -325,7 +330,9 @@ HTTP/1.1 200 OK
  "year": 2012,
  "period": "1",
  "course": "42",
+ "modality": "AA",
  "conclusionLimit": "2017-07-01T12:22:25.058Z",
+ "efficiencyCoefficient": 0.98,
  "createdAt": "2014-07-01T12:22:25.058Z",
  "updatedAt": "2014-07-01T12:22:25.058Z"
 }]
@@ -363,10 +370,10 @@ HTTP/1.1 403 Forbidden
 ```
 ## Updates history information.
 
-When updating a history the user must send the history year, period, course, conclusionLimit and conclusionDate. If
-a existing code which is not the original history code is sent to this method, a 409 error will be raised. And if no
-year, or period or course is sent, a 400 error will be raised. If no history with the requested code was found, a 404
-error will be raised.
+When updating a history the user must send the history year, period, course, modality, conclusionLimit and
+conclusionDate. If a existing code which is not the original history code is sent to this method, a 409 error will be
+raised. And if no year, or period, or course or modality is sent, a 400 error will be raised. If no history with the
+requested code was found, a 404 error will be raised.
 
 	PUT /users/:user/histories/:history
 
@@ -377,6 +384,7 @@ error will be raised.
 | year			| Number			|  History year.							|
 | period			| String			|  History period.							|
 | course			| String			|  History course.							|
+| modality			| String			|  History modality.							|
 | conclusionLimit			| Date			| **optional** History conclusionLimit.							|
 | conclusionDate			| Date			| **optional** History conclusionDate.							|
 
@@ -400,7 +408,10 @@ HTTP/1.1 400 Bad Request
 
 ```
 {
- "code": "required"
+ "year": "required",
+ "period": "required",
+ "course": "required",
+ "modality": "required"
 }
 
 ```
