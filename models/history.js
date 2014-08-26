@@ -15,11 +15,11 @@ schema = new Schema({
     'type'     : Number,
     'required' : true
   },
-  'period'          : {
+  'course'          : {
     'type'     : String,
     'required' : true
   },
-  'course'          : {
+  'modality'        : {
     'type'     : String,
     'required' : true
   },
@@ -45,23 +45,23 @@ schema = new Schema({
 });
 
 schema.index({
-  'user'   : 1,
-  'year'   : 1,
-  'period' : 1
+  'user' : 1,
+  'year' : 1
 }, {
   'unique' : true
 });
 
 schema.plugin(jsonSelect, {
-  '_id'             : 0,
-  'user'            : 0,
-  'year'            : 1,
-  'period'          : 1,
-  'course'          : 1,
-  'conclusionLimit' : 1,
-  'conclusionDate'  : 1,
-  'createdAt'       : 1,
-  'updatedAt'       : 1
+  '_id'                   : 0,
+  'user'                  : 0,
+  'year'                  : 1,
+  'course'                : 1,
+  'modality'              : 1,
+  'conclusionLimit'       : 1,
+  'conclusionDate'        : 1,
+  'efficiencyCoefficient' : 1,
+  'createdAt'             : 1,
+  'updatedAt'             : 1
 });
 
 schema.pre('save', function setHistoryUpdatedAt(next) {
@@ -69,6 +69,49 @@ schema.pre('save', function setHistoryUpdatedAt(next) {
 
   this.updatedAt = new Date();
   next();
+});
+
+schema.pre('init', function (next, data) {
+  'use strict';
+
+  var Discipline, query;
+  Discipline = require('./discipline');
+  query = Discipline.find();
+  query.where('history').equals(data._id);
+  query.exec(function (error, disciplines) {
+    if (error) {
+      error = new VError(error, 'error finding history: "%s" disciplines', data._id);
+      return next(error);
+    }
+    this.disciplines = disciplines;
+    return next();
+  }.bind(this));
+});
+
+schema.virtual('finishedDisciplines').get(function historyFinishedDisciplines() {
+  return this.disciplines.filter(function filterHistoryFinishedDisciplines(discipline) {
+    return [4, 5, 6].indexOf(discipline.status) > -1;
+  });
+});
+
+schema.virtual('efficiencyCoefficient').get(function () {
+  'use strict';
+
+  var gradeSum, creditSum;
+
+  gradeSum = this.finishedDisciplines.map(function (discipline) {
+    return discipline.grade * discipline.credits;
+  }).reduce(function (gradeSum, grade) {
+    return gradeSum + grade;
+  }, 0);
+
+  creditSum = this.finishedDisciplines.map(function (discipline) {
+    return discipline.credits;
+  }).reduce(function (creditSum, credit) {
+    return creditSum + credit;
+  }, 0) * 10;
+
+  return creditSum ? gradeSum / creditSum : 1;
 });
 
 module.exports = mongoose.model('History', schema);

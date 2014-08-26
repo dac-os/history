@@ -94,6 +94,7 @@ router
     'history'    : request.history,
     'discipline' : request.coursedDiscipline ? request.coursedDiscipline.code : null,
     'offering'   : request.offering ? request.offering.year + '-' + request.offering.period + '-' + request.offering.code : null,
+    'credits'    : request.param('credits'),
     'grade'      : request.param('grade'),
     'frequency'  : request.param('frequency'),
     'status'     : request.param('status')
@@ -260,6 +261,7 @@ router
   discipline = request.discipline;
   discipline.discipline = request.coursedDiscipline ? request.coursedDiscipline.code : null;
   discipline.offering = request.offering ? request.offering.year + '-' + request.offering.period + '-' + request.offering.code : null;
+  discipline.credits = request.param('credits');
   discipline.grade = request.param('grade');
   discipline.frequency = request.param('frequency');
   discipline.status = request.param('status');
@@ -314,12 +316,10 @@ router
 router.param('history', function findHistory(request, response, next, id) {
   'use strict';
 
-  var query, code;
-  code = id.split('-');
+  var query;
   query = History.findOne();
   query.where('user').equals(request.params.user);
-  query.where('year').equals(code[0]);
-  query.where('period').equals(code[1]);
+  query.where('year').equals(id);
   query.exec(function foundHistory(error, history) {
     if (error) {
       error = new VError(error, 'error finding history: ""', history);

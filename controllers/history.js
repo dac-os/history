@@ -26,6 +26,26 @@ router.use(function (request, response, next) {
   }.bind(this));
 });
 
+router.use(function (request, response, next) {
+  'use strict';
+
+  var courseId, modalityId, year;
+  courseId = request.param('course');
+  modalityId = request.param('modality');
+  year = request.param('year');
+  if (!courseId || !modalityId || !year) {
+    return next();
+  }
+  return courses.modality(year, courseId + '-' + modalityId, function (error, modality) {
+    if (error) {
+      error = new VError(error, 'Error finding modality: "$s"', courseId + '-' + modalityId);
+      return next(error);
+    }
+    request.modality = modality;
+    return next();
+  }.bind(this));
+});
+
 /**
  * @api {post} /users/:user/histories Creates a new history.
  * @apiName createHistory
@@ -33,13 +53,15 @@ router.use(function (request, response, next) {
  * @apiGroup history
  * @apiPermission changeHistory
  * @apiDescription
- * When creating a new history the user must send the history year, period, course, conclusionLimit and conclusionDate.
- * The history code is used for identifying and must be unique in the system. If a existing code is sent to this method,
- * a 409 error will be raised. And if no year, or period or course is sent, a 400 error will be raised.
+ * When creating a new history the user must send the history year, period, course, modality, conclusionLimit and
+ * conclusionDate. The history code is used for identifying and must be unique in the system. If a existing code is sent
+ * to this method, a 409 error will be raised. And if no year, or period, or course or modality is sent, a 400 error
+ * will be raised.
  *
  * @apiParam {Number} year History year.
  * @apiParam {String} period History period.
  * @apiParam {String} course History course.
+ * @apiParam {String} modality History modality.
  * @apiParam {Date} [conclusionLimit] History conclusionLimit.
  * @apiParam {Date} [conclusionDate] History conclusionDate.
  *
@@ -48,7 +70,8 @@ router.use(function (request, response, next) {
  * {
  *   "year": "required",
  *   "period": "required",
- *   "course": "required"
+ *   "course": "required",
+ *   "modality": "required"
  * }
  *
  * @apiErrorExample
@@ -73,6 +96,7 @@ router
   history = new History({
     'user'            : request.params.user,
     'course'          : request.course ? request.course.code : null,
+    'modality'        : request.modality ? request.modality.code : null,
     'year'            : request.param('year'),
     'period'          : request.param('period'),
     'conclusionLimit' : request.param('conclusionLimit'),
@@ -102,6 +126,7 @@ router
  * @apiSuccess (history) {Number} year History year.
  * @apiSuccess (history) {String} period History period.
  * @apiSuccess (history) {String} course History course.
+ * @apiSuccess (history) {String} modality History modality.
  * @apiSuccess (history) {Date} [conclusionLimit] History conclusionLimit.
  * @apiSuccess (history) {Date} [conclusionDate] History conclusionDate.
  * @apiSuccess (history) {Date} createdAt History creation date.
@@ -113,7 +138,9 @@ router
  *   "year": 2012,
  *   "period": "1",
  *   "course": "42",
+ *   "modality": "AA",
  *   "conclusionLimit": "2017-07-01T12:22:25.058Z",
+ *   "efficiencyCoefficient": 0.98,
  *   "createdAt": "2014-07-01T12:22:25.058Z",
  *   "updatedAt": "2014-07-01T12:22:25.058Z"
  * }]
@@ -152,6 +179,7 @@ router
  * @apiSuccess {Number} year History year.
  * @apiSuccess {String} period History period.
  * @apiSuccess {String} course History course.
+ * @apiSuccess {String} modality History modality.
  * @apiSuccess {Date} [conclusionLimit] History conclusionLimit.
  * @apiSuccess {Date} [conclusionDate] History conclusionDate.
  * @apiSuccess {Date} createdAt History creation date.
@@ -167,7 +195,9 @@ router
  *   "year": 2012,
  *   "period": "1",
  *   "course": "42",
+ *   "modality": "AA",
  *   "conclusionLimit": "2017-07-01T12:22:25.058Z",
+ *   "efficiencyCoefficient": 0.98,
  *   "createdAt": "2014-07-01T12:22:25.058Z",
  *   "updatedAt": "2014-07-01T12:22:25.058Z"
  * }
@@ -189,14 +219,15 @@ router
  * @apiGroup history
  * @apiPermission changeHistory
  * @apiDescription
- * When updating a history the user must send the history year, period, course, conclusionLimit and conclusionDate. If
- * a existing code which is not the original history code is sent to this method, a 409 error will be raised. And if no
- * year, or period or course is sent, a 400 error will be raised. If no history with the requested code was found, a 404
- * error will be raised.
+ * When updating a history the user must send the history year, period, course, modality, conclusionLimit and
+ * conclusionDate. If a existing code which is not the original history code is sent to this method, a 409 error will be
+ * raised. And if no year, or period, or course or modality is sent, a 400 error will be raised. If no history with the
+ * requested code was found, a 404 error will be raised.
  *
  * @apiParam {Number} year History year.
  * @apiParam {String} period History period.
  * @apiParam {String} course History course.
+ * @apiParam {String} modality History modality.
  * @apiParam {Date} [conclusionLimit] History conclusionLimit.
  * @apiParam {Date} [conclusionDate] History conclusionDate.
  *
@@ -207,7 +238,10 @@ router
  * @apiErrorExample
  * HTTP/1.1 400 Bad Request
  * {
- *   "code": "required"
+ *   "year": "required",
+ *   "period": "required",
+ *   "course": "required",
+ *   "modality": "required"
  * }
  *
  * @apiErrorExample
@@ -231,6 +265,7 @@ router
   var history;
   history = request.history;
   history.course = request.course ? request.course.code : null;
+  history.modality = request.modality ? request.modality.code : null;
   history.year = request.param('year');
   history.period = request.param('period');
   history.conclusionLimit = request.param('conclusionLimit');
@@ -286,12 +321,10 @@ router
 router.param('history', function findHistory(request, response, next, id) {
   'use strict';
 
-  var query, code;
-  code = id.split('-');
+  var query;
   query = History.findOne();
   query.where('user').equals(request.params.user);
-  query.where('year').equals(code[0]);
-  query.where('period').equals(code[1]);
+  query.where('year').equals(id);
   query.exec(function foundHistory(error, history) {
     if (error) {
       error = new VError(error, 'error finding history: ""', history);

@@ -48,6 +48,26 @@ nock(nconf.get('COURSES_URI')).get('/courses/43').times(Infinity).reply(200, {
   'level' : 'GRAD'
 });
 
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/undefined').times(Infinity).reply(404, {});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA').times(Infinity).reply(200, {
+  'code'   : 'AA',
+  'course' : {
+    'code'  : '42',
+    'name'  : 'Ciencia da computação',
+    'level' : 'GRAD'
+  }
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2015/modalities/43-AB').times(Infinity).reply(200, {
+  'code'   : 'AB',
+  'course' : {
+    'code'  : '43',
+    'name'  : 'Ciencia da computação 2',
+    'level' : 'GRAD'
+  }
+});
+
 describe('history controller', function () {
   'use strict';
 
@@ -59,8 +79,8 @@ describe('history controller', function () {
       request = supertest(app);
       request = request.post('/users/111111/histories');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.expect(403);
       request.end(done);
     });
@@ -73,6 +93,7 @@ describe('history controller', function () {
       request.send({'year' : 2014});
       request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.expect(403);
       request.end(done);
     });
@@ -91,7 +112,7 @@ describe('history controller', function () {
       request.end(done);
     });
 
-    it('should raise error without period', function (done) {
+    it('should raise error without modality', function (done) {
       var request;
       request = supertest(app);
       request = request.post('/users/111111/histories');
@@ -100,7 +121,7 @@ describe('history controller', function () {
       request.send({'course' : '42'});
       request.expect(400);
       request.expect(function (response) {
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
       });
       request.end(done);
     });
@@ -111,7 +132,7 @@ describe('history controller', function () {
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
+      request.send({'modality' : 'AA'});
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('course').be.equal('required');
@@ -119,7 +140,7 @@ describe('history controller', function () {
       request.end(done);
     });
 
-    it('should raise error without year and period', function (done) {
+    it('should raise error without year and modality', function (done) {
       var request;
       request = supertest(app);
       request = request.post('/users/111111/histories');
@@ -128,7 +149,7 @@ describe('history controller', function () {
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
       });
       request.end(done);
     });
@@ -138,7 +159,7 @@ describe('history controller', function () {
       request = supertest(app);
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
-      request.send({'period' : '1'});
+      request.send({'modality' : 'AA'});
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
@@ -147,7 +168,7 @@ describe('history controller', function () {
       request.end(done);
     });
 
-    it('should raise error without period and course', function (done) {
+    it('should raise error without modality and course', function (done) {
       var request;
       request = supertest(app);
       request = request.post('/users/111111/histories');
@@ -155,13 +176,13 @@ describe('history controller', function () {
       request.send({'year' : 2014});
       request.expect(400);
       request.expect(function (response) {
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
         response.body.should.have.property('course').be.equal('required');
       });
       request.end(done);
     });
 
-    it('should raise error without year, period and course', function (done) {
+    it('should raise error without year, modality and course', function (done) {
       var request;
       request = supertest(app);
       request = request.post('/users/111111/histories');
@@ -169,7 +190,7 @@ describe('history controller', function () {
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
         response.body.should.have.property('course').be.equal('required');
       });
       request.end(done);
@@ -181,8 +202,8 @@ describe('history controller', function () {
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.expect(201);
       request.end(done);
     });
@@ -196,8 +217,8 @@ describe('history controller', function () {
         request = request.post('/users/111111/histories');
         request.set('csrf-token', 'adminToken');
         request.send({'year' : 2014});
-        request.send({'period' : '1'});
         request.send({'course' : '42'});
+        request.send({'modality' : 'AA'});
         request.end(done);
       });
 
@@ -207,8 +228,8 @@ describe('history controller', function () {
         request = request.post('/users/111111/histories');
         request.set('csrf-token', 'adminToken');
         request.send({'year' : 2014});
-        request.send({'period' : '1'});
         request.send({'course' : '42'});
+        request.send({'modality' : 'AA'});
         request.expect(409);
         request.end(done);
       });
@@ -224,8 +245,8 @@ describe('history controller', function () {
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.end(done);
     });
 
@@ -238,7 +259,7 @@ describe('history controller', function () {
         response.body.should.be.instanceOf(Array).with.lengthOf(1);
         response.body.every(function (history) {
           history.should.have.property('year');
-          history.should.have.property('period');
+          history.should.have.property('modality');
           history.should.have.property('course');
         });
       });
@@ -267,15 +288,15 @@ describe('history controller', function () {
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.end(done);
     });
 
     it('should raise error with invalid code', function (done) {
       var request;
       request = supertest(app);
-      request = request.get('/users/111111/histories/2014-invalid');
+      request = request.get('/users/111111/histories/2012');
       request.expect(404);
       request.end(done);
     });
@@ -283,11 +304,11 @@ describe('history controller', function () {
     it('should show', function (done) {
       var request;
       request = supertest(app);
-      request = request.get('/users/111111/histories/2014-1');
+      request = request.get('/users/111111/histories/2014');
       request.expect(200);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal(2014);
-        response.body.should.have.property('period').be.equal('1');
+        response.body.should.have.property('modality').be.equal('AA');
         response.body.should.have.property('course').be.equal('42');
       });
       request.end(done);
@@ -303,18 +324,18 @@ describe('history controller', function () {
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.end(done);
     });
 
     it('should raise error without token', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.send({'year' : 2015});
-      request.send({'period' : '2'});
       request.send({'course' : '43'});
+      request.send({'modality' : 'AB'});
       request.expect(403);
       request.end(done);
     });
@@ -322,11 +343,11 @@ describe('history controller', function () {
     it('should raise error without changeHistory permission', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'userToken');
       request.send({'year' : 2015});
-      request.send({'period' : '2'});
       request.send({'course' : '43'});
+      request.send({'modality' : 'AB'});
       request.expect(403);
       request.end(done);
     });
@@ -334,11 +355,11 @@ describe('history controller', function () {
     it('should raise error with invalid code', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-invalid');
+      request = request.put('/users/111111/histories/2012');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2015});
-      request.send({'period' : '2'});
       request.send({'course' : '43'});
+      request.send({'modality' : 'AB'});
       request.expect(404);
       request.end(done);
     });
@@ -346,10 +367,10 @@ describe('history controller', function () {
     it('should raise error without year', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
-      request.send({'period' : '2'});
       request.send({'course' : '43'});
+      request.send({'modality' : 'AB'});
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
@@ -357,16 +378,16 @@ describe('history controller', function () {
       request.end(done);
     });
 
-    it('should raise error without period', function (done) {
+    it('should raise error without modality', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2015});
       request.send({'course' : '43'});
       request.expect(400);
       request.expect(function (response) {
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
       });
       request.end(done);
     });
@@ -374,10 +395,10 @@ describe('history controller', function () {
     it('should raise error without course', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2015});
-      request.send({'period' : '2'});
+      request.send({'modality' : 'AB'});
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('course').be.equal('required');
@@ -385,16 +406,16 @@ describe('history controller', function () {
       request.end(done);
     });
 
-    it('should raise error without year and period', function (done) {
+    it('should raise error without year and modality', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.send({'course' : '43'});
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
       });
       request.end(done);
     });
@@ -402,9 +423,9 @@ describe('history controller', function () {
     it('should raise error without year and course', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
-      request.send({'period' : '2'});
+      request.send({'modality' : 'AB'});
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
@@ -413,29 +434,29 @@ describe('history controller', function () {
       request.end(done);
     });
 
-    it('should raise error without period and course', function (done) {
+    it('should raise error without modality and course', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2015});
       request.expect(400);
       request.expect(function (response) {
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
         response.body.should.have.property('course').be.equal('required');
       });
       request.end(done);
     });
 
-    it('should raise error without year, period and course', function (done) {
+    it('should raise error without year, modality and course', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.expect(400);
       request.expect(function (response) {
         response.body.should.have.property('year').be.equal('required');
-        response.body.should.have.property('period').be.equal('required');
+        response.body.should.have.property('modality').be.equal('required');
         response.body.should.have.property('course').be.equal('required');
       });
       request.end(done);
@@ -444,11 +465,11 @@ describe('history controller', function () {
     it('should update', function (done) {
       var request;
       request = supertest(app);
-      request = request.put('/users/111111/histories/2014-1');
+      request = request.put('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2015});
-      request.send({'period' : '2'});
       request.send({'course' : '43'});
+      request.send({'modality' : 'AB'});
       request.expect(200);
       request.end(done);
     });
@@ -460,19 +481,19 @@ describe('history controller', function () {
         request = request.post('/users/111111/histories');
         request.set('csrf-token', 'adminToken');
         request.send({'year' : 2014});
-        request.send({'period' : '1'});
         request.send({'course' : '42'});
+        request.send({'modality' : 'AA'});
         request.end(done);
       });
 
       it('should raise error', function (done) {
         var request;
         request = supertest(app);
-        request = request.put('/users/111111/histories/2014-1');
+        request = request.put('/users/111111/histories/2014');
         request.set('csrf-token', 'adminToken');
         request.send({'year' : 2015});
-        request.send({'period' : '2'});
         request.send({'course' : '43'});
+        request.send({'modality' : 'AB'});
         request.expect(409);
         request.end(done);
       });
@@ -488,15 +509,15 @@ describe('history controller', function () {
       request = request.post('/users/111111/histories');
       request.set('csrf-token', 'adminToken');
       request.send({'year' : 2014});
-      request.send({'period' : '1'});
       request.send({'course' : '42'});
+      request.send({'modality' : 'AA'});
       request.end(done);
     });
 
     it('should raise error without token', function (done) {
       var request;
       request = supertest(app);
-      request = request.del('/users/111111/histories/2014-1');
+      request = request.del('/users/111111/histories/2014');
       request.expect(403);
       request.end(done);
     });
@@ -504,7 +525,7 @@ describe('history controller', function () {
     it('should raise error without changeHistory permission', function (done) {
       var request;
       request = supertest(app);
-      request = request.del('/users/111111/histories/2014-1');
+      request = request.del('/users/111111/histories/2014');
       request.set('csrf-token', 'userToken');
       request.expect(403);
       request.end(done);
@@ -513,7 +534,7 @@ describe('history controller', function () {
     it('should raise error with invalid code', function (done) {
       var request;
       request = supertest(app);
-      request = request.del('/users/111111/histories/2014-invalid');
+      request = request.del('/users/111111/histories/2012');
       request.set('csrf-token', 'adminToken');
       request.expect(404);
       request.end(done);
@@ -522,7 +543,7 @@ describe('history controller', function () {
     it('should delete', function (done) {
       var request;
       request = supertest(app);
-      request = request.del('/users/111111/histories/2014-1');
+      request = request.del('/users/111111/histories/2014');
       request.set('csrf-token', 'adminToken');
       request.expect(204);
       request.end(done);
