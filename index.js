@@ -35,6 +35,7 @@ app.use(function (request, response, next) {
   next();
 });
 app.use(require('./controllers/history'));
+app.use(require('./controllers/discipline'));
 app.use(function handleErrors(error, request, response, next) {
   'use strict';
 

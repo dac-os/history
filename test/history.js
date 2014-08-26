@@ -15,7 +15,7 @@ nock(nconf.get('AUTH_URI'), {
   'profile'          : {
     'name'        : 'admin',
     'slug'        : 'admin',
-    'permissions' : ['changeHistory']
+    'permissions' : ['changeHistory', 'changeDiscipline']
   }
 });
 
