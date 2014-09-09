@@ -76,6 +76,22 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC202').times(Infinity).reply(2
   'description' : 'Estrutura de dados'
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC302').times(Infinity).reply(200, {
+  'code'        : 'MC302',
+  'name'        : 'Programação orientada a objetos',
+  'credits'     : 6,
+  'department'  : 'IC',
+  'description' : 'Programação orientada a objetos'
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC940').times(Infinity).reply(200, {
+  'code'        : 'MC940',
+  'name'        : 'Computação Gráfica',
+  'credits'     : 4,
+  'department'  : 'IC',
+  'description' : 'Computação Gráfica'
+});
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/undefined').times(Infinity).reply(404, {});
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/undefined').times(Infinity).reply(404, {});
@@ -92,9 +108,90 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/2014-1-A').time
   'period' : '1'
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC302/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'   : 'A',
+  'year'   : 2014,
+  'period' : '1'
+});
+
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC940/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'   : 'A',
+  'year'   : 2014,
+  'period' : '1'
+});
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=0').times(Infinity).reply(200, [
+  {
+    'code'    : 'visao',
+    'type'    : 'eletorias',
+    'credits' : 4
+  },
+  {
+    'code' : 'nucleo-comum',
+    'type' : 'obrigatorias'
+  },
+  {
+    'code'    : 'eletivas',
+    'type'    : 'eletivas',
+    'credits' : 12
+  }
+]);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=1').times(Infinity).reply(200, []);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/visao/requirements?page=0').times(Infinity).reply(200, [
+  {
+    'discipline' : {
+      'code'       : 'MC930',
+      'name'       : 'Visão Computacional',
+      'credits'    : 4,
+      'department' : 'IC'
+    }
+  },
+  {
+    'discipline' : {
+      'code'       : 'MC940',
+      'name'       : 'Computação Gráfica',
+      'credits'    : 4,
+      'department' : 'IC'
+    }
+  }
+]);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/visao/requirements?page=1').times(Infinity).reply(200, []);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements?page=0').times(Infinity).reply(200, [
+  {
+    'discipline' : {
+      'code'       : 'MC102',
+      'name'       : 'Programação de computadores',
+      'credits'    : 6,
+      'department' : 'IC'
+    }
+  },
+  {
+    'discipline' : {
+      'code'       : 'MC202',
+      'name'       : 'Estrutura de dados',
+      'credits'    : 6,
+      'department' : 'IC'
+    }
+  }
+]);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/nucleo-comum/requirements?page=1').times(Infinity).reply(200, []);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/eletivas/requirements?page=0').times(Infinity).reply(200, [
+  {
+    'mask' : 'MC---'
+  }
+]);
+
+nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks/eletivas/requirements?page=1').times(Infinity).reply(200, []);
+
 describe('discipline controller', function () {
   'use strict';
-  
+
   before(History.remove.bind(History));
 
   before(function (done) {
@@ -498,7 +595,7 @@ describe('discipline controller', function () {
     });
   });
 
-  describe('efficiency coefficient', function () {
+  describe('efficiency coefficient and course progress', function () {
     before(Discipline.remove.bind(Discipline));
 
     before(function (done) {
@@ -508,7 +605,7 @@ describe('discipline controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC102'});
       request.send({'offering' : '2014-1-A'});
-      request.send({'grade' : '7.0'});
+      request.send({'grade' : 'A'});
       request.send({'credits' : 6});
       request.send({'status' : 5});
       request.end(done);
@@ -521,7 +618,33 @@ describe('discipline controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC202'});
       request.send({'offering' : '2014-1-A'});
-      request.send({'grade' : '9.0'});
+      request.send({'grade' : '5.0'});
+      request.send({'credits' : 6});
+      request.send({'status' : 5});
+      request.end(done);
+    });
+
+    before(function (done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/users/111111/histories/2014/disciplines');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'MC302'});
+      request.send({'offering' : '2014-1-A'});
+      request.send({'grade' : '5.0'});
+      request.send({'credits' : 6});
+      request.send({'status' : 5});
+      request.end(done);
+    });
+
+    before(function (done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/users/111111/histories/2014/disciplines');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'MC940'});
+      request.send({'offering' : '2014-1-A'});
+      request.send({'grade' : '5.0'});
       request.send({'credits' : 6});
       request.send({'status' : 5});
       request.end(done);
@@ -533,7 +656,8 @@ describe('discipline controller', function () {
       request = request.get('/users/111111/histories/2014');
       request.expect(200);
       request.expect(function (response) {
-        response.body.should.have.property('efficiencyCoefficient').be.equal(0.8);
+        response.body.should.have.property('efficiencyCoefficient').be.approximately(0.62, 0.05);
+        response.body.should.have.property('courseProgress').be.approximately(0.78, 0.01);
       });
       request.end(done);
     });

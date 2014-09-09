@@ -21,7 +21,7 @@ schema = new Schema({
     'required' : true
   },
   'credits'    : {
-    'type'     : Number
+    'type' : Number
   },
   'grade'      : {
     'type' : String
@@ -73,6 +73,24 @@ schema.pre('save', function setDisciplineUpdatedAt(next) {
 
   this.updatedAt = new Date();
   next();
+});
+
+schema.virtual('score').get(function getDisciplineScore() {
+  if (!this.grade) {
+    return 0;
+  }
+  switch (this.grade.toLowerCase()) {
+    case 'a':
+      return 10;
+    case 'b':
+      return 8;
+    case 'c':
+      return 6;
+    case 'd':
+      return 4;
+    default:
+      return this.grade + 0;
+  }
 });
 
 module.exports = mongoose.model('Discipline', schema);
