@@ -92,6 +92,14 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC940').times(Infinity).reply(2
   'description' : 'Computação Gráfica'
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC001').times(Infinity).reply(200, {
+  'code'        : 'MC001',
+  'name'        : 'Introdução à computação',
+  'credits'     : 2,
+  'department'  : 'IC',
+  'description' : 'Introdução à computação'
+});
+
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC102/offerings/undefined').times(Infinity).reply(404, {});
 
 nock(nconf.get('COURSES_URI')).get('/disciplines/MC202/offerings/undefined').times(Infinity).reply(404, {});
@@ -120,6 +128,12 @@ nock(nconf.get('COURSES_URI')).get('/disciplines/MC940/offerings/2014-1-A').time
   'period' : '1'
 });
 
+nock(nconf.get('COURSES_URI')).get('/disciplines/MC001/offerings/2014-1-A').times(Infinity).reply(200, {
+  'code'   : 'A',
+  'year'   : 2014,
+  'period' : '1'
+});
+
 nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=0').times(Infinity).reply(200, [
   {
     'code'    : 'visao',
@@ -133,7 +147,7 @@ nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA/blocks?page=
   {
     'code'    : 'eletivas',
     'type'    : 'eletivas',
-    'credits' : 12
+    'credits' : 14
   }
 ]);
 
@@ -618,7 +632,7 @@ describe('discipline controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC202'});
       request.send({'offering' : '2014-1-A'});
-      request.send({'grade' : '5.0'});
+      request.send({'grade' : 'B'});
       request.send({'credits' : 6});
       request.send({'status' : 5});
       request.end(done);
@@ -631,7 +645,7 @@ describe('discipline controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC302'});
       request.send({'offering' : '2014-1-A'});
-      request.send({'grade' : '5.0'});
+      request.send({'grade' : 'C'});
       request.send({'credits' : 6});
       request.send({'status' : 5});
       request.end(done);
@@ -644,7 +658,20 @@ describe('discipline controller', function () {
       request.set('csrf-token', 'adminToken');
       request.send({'discipline' : 'MC940'});
       request.send({'offering' : '2014-1-A'});
-      request.send({'grade' : '5.0'});
+      request.send({'grade' : 'D'});
+      request.send({'credits' : 6});
+      request.send({'status' : 5});
+      request.end(done);
+    });
+
+    before(function (done) {
+      var request;
+      request = supertest(app);
+      request = request.post('/users/111111/histories/2014/disciplines');
+      request.set('csrf-token', 'adminToken');
+      request.send({'discipline' : 'MC001'});
+      request.send({'offering' : '2014-1-A'});
+      request.send({'grade' : '0.5'});
       request.send({'credits' : 6});
       request.send({'status' : 5});
       request.end(done);
@@ -656,8 +683,8 @@ describe('discipline controller', function () {
       request = request.get('/users/111111/histories/2014');
       request.expect(200);
       request.expect(function (response) {
-        response.body.should.have.property('efficiencyCoefficient').be.approximately(0.62, 0.05);
-        response.body.should.have.property('courseProgress').be.approximately(0.78, 0.01);
+        response.body.should.have.property('efficiencyCoefficient').be.approximately(0.57, 0.01);
+        response.body.should.have.property('courseProgress').be.approximately(0.93, 0.01);
       });
       request.end(done);
     });
