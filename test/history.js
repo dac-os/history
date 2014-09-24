@@ -1,72 +1,10 @@
 /*globals describe, before, beforeEach, it, after*/
 require('should');
-var supertest, nock, nconf, app, History;
+var supertest, app, History;
 
 supertest = require('supertest');
 app = require('../index.js');
-nock = require('nock');
-nconf = require('nconf');
 History = require('../models/history');
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'adminToken'}
-}).get('/users/me').times(Infinity).reply(200, {
-  'academicRegistry' : '111111',
-  'profile'          : {
-    'name'        : 'admin',
-    'slug'        : 'admin',
-    'permissions' : ['changeHistory', 'changeDiscipline']
-  }
-});
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'userToken'}
-}).get('/users/me').times(Infinity).reply(200, {
-  'academicRegistry' : '111112',
-  'profile'          : {
-    'name'        : 'user',
-    'slug'        : 'user',
-    'permissions' : []
-  }
-});
-
-nock(nconf.get('AUTH_URI'), {
-  'reqheaders' : {'csrf-token' : 'undefined'}
-}).get('/users/me').times(Infinity).reply(404, {});
-
-nock(nconf.get('COURSES_URI')).get('/courses/undefined').times(Infinity).reply(404, {});
-
-nock(nconf.get('COURSES_URI')).get('/courses/42').times(Infinity).reply(200, {
-  'code'  : '42',
-  'name'  : 'Ciencia da computação',
-  'level' : 'GRAD'
-});
-
-nock(nconf.get('COURSES_URI')).get('/courses/43').times(Infinity).reply(200, {
-  'code'  : '43',
-  'name'  : 'Ciencia da computação 2',
-  'level' : 'GRAD'
-});
-
-nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/undefined').times(Infinity).reply(404, {});
-
-nock(nconf.get('COURSES_URI')).get('/catalogs/2014/modalities/42-AA').times(Infinity).reply(200, {
-  'code'   : 'AA',
-  'course' : {
-    'code'  : '42',
-    'name'  : 'Ciencia da computação',
-    'level' : 'GRAD'
-  }
-});
-
-nock(nconf.get('COURSES_URI')).get('/catalogs/2015/modalities/43-AB').times(Infinity).reply(200, {
-  'code'   : 'AB',
-  'course' : {
-    'code'  : '43',
-    'name'  : 'Ciencia da computação 2',
-    'level' : 'GRAD'
-  }
-});
 
 describe('history controller', function () {
   'use strict';

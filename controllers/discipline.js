@@ -1,50 +1,12 @@
-var VError, router, nconf, slug, auth, courses, Discipline, History;
+var VError, router, nconf, slug, auth, Discipline, History;
 
 VError = require('verror');
 router = require('express').Router();
 nconf = require('nconf');
 slug = require('slug');
 auth = require('dacos-auth-driver');
-courses = require('dacos-courses-driver');
 Discipline = require('../models/discipline');
 History = require('../models/history');
-
-router.use(function (request, response, next) {
-  'use strict';
-
-  var disciplineId;
-  disciplineId = request.param('discipline');
-  if (!disciplineId) {
-    return next();
-  }
-  return courses.discipline(disciplineId, function (error, discipline) {
-    if (error) {
-      error = new VError(error, 'Error finding discipline: "$s"', disciplineId);
-      return next(error);
-    }
-    request.coursedDiscipline = discipline;
-    return next();
-  }.bind(this));
-});
-
-router.use(function (request, response, next) {
-  'use strict';
-
-  var offeringId, disciplineId;
-  offeringId = request.param('offering');
-  disciplineId = request.param('discipline');
-  if (!offeringId || !disciplineId) {
-    return next();
-  }
-  return courses.offering(disciplineId, offeringId, function (error, offering) {
-    if (error) {
-      error = new VError(error, 'Error finding offering: "$s"', offeringId);
-      return next(error);
-    }
-    request.offering = offering;
-    return next();
-  }.bind(this));
-});
 
 /**
  * @api {post} /users/:user/histories/:history/disciplines Creates a new discipline.
@@ -92,8 +54,8 @@ router
   var discipline;
   discipline = new Discipline({
     'history'    : request.history,
-    'discipline' : request.coursedDiscipline ? request.coursedDiscipline.code : null,
-    'offering'   : request.offering ? request.offering.year + '-' + request.offering.period + '-' + request.offering.code : null,
+    'discipline' : request.param('discipline'),
+    'offering'   : request.param('offering'),
     'credits'    : request.param('credits'),
     'grade'      : request.param('grade'),
     'frequency'  : request.param('frequency'),
@@ -259,8 +221,8 @@ router
 
   var discipline;
   discipline = request.discipline;
-  discipline.discipline = request.coursedDiscipline ? request.coursedDiscipline.code : null;
-  discipline.offering = request.offering ? request.offering.year + '-' + request.offering.period + '-' + request.offering.code : null;
+  discipline.discipline = request.body.discipline;
+  discipline.offering = request.param('offering');
   discipline.credits = request.param('credits');
   discipline.grade = request.param('grade');
   discipline.frequency = request.param('frequency');

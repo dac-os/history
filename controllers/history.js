@@ -1,50 +1,11 @@
-var VError, router, nconf, slug, auth, courses, History;
+var VError, router, nconf, slug, auth, History;
 
 VError = require('verror');
 router = require('express').Router();
 nconf = require('nconf');
 slug = require('slug');
 auth = require('dacos-auth-driver');
-courses = require('dacos-courses-driver');
 History = require('../models/history');
-
-router.use(function (request, response, next) {
-  'use strict';
-
-  var courseId;
-  courseId = request.param('course');
-  if (!courseId) {
-    return next();
-  }
-  return courses.course(courseId, function (error, course) {
-    if (error) {
-      error = new VError(error, 'Error finding course: "$s"', courseId);
-      return next(error);
-    }
-    request.course = course;
-    return next();
-  }.bind(this));
-});
-
-router.use(function (request, response, next) {
-  'use strict';
-
-  var courseId, modalityId, year;
-  courseId = request.param('course');
-  modalityId = request.param('modality');
-  year = request.param('year');
-  if (!courseId || !modalityId || !year) {
-    return next();
-  }
-  return courses.modality(year, courseId + '-' + modalityId, function (error, modality) {
-    if (error) {
-      error = new VError(error, 'Error finding modality: "$s"', courseId + '-' + modalityId);
-      return next(error);
-    }
-    request.modality = modality;
-    return next();
-  }.bind(this));
-});
 
 /**
  * @api {post} /users/:user/histories Creates a new history.
@@ -95,8 +56,8 @@ router
   var history;
   history = new History({
     'user'            : request.params.user,
-    'course'          : request.course ? request.course.code : null,
-    'modality'        : request.modality ? request.modality.code : null,
+    'course'          : request.param('course'),
+    'modality'        : request.param('modality'),
     'year'            : request.param('year'),
     'period'          : request.param('period'),
     'conclusionLimit' : request.param('conclusionLimit'),
@@ -264,8 +225,8 @@ router
 
   var history;
   history = request.history;
-  history.course = request.course ? request.course.code : null;
-  history.modality = request.modality ? request.modality.code : null;
+  history.course = request.param('course');
+  history.modality = request.param('modality');
   history.year = request.param('year');
   history.period = request.param('period');
   history.conclusionLimit = request.param('conclusionLimit');

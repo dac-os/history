@@ -1,9 +1,10 @@
-var VError, mongoose, jsonSelect, nconf, Schema, schema;
+var VError, mongoose, jsonSelect, nconf, courses, Schema, schema;
 
 VError = require('verror');
 mongoose = require('mongoose');
 jsonSelect = require('mongoose-json-select');
 nconf = require('nconf');
+courses = require('dacos-courses-driver');
 Schema = mongoose.Schema;
 
 schema = new Schema({
@@ -92,5 +93,13 @@ schema.virtual('score').get(function getDisciplineScore() {
       return this.grade + 0;
   }
 });
+
+schema.path('offering').validate(function validateIfDisciplineOfferingExists(value, next) {
+  'use strict';
+
+  courses.offering(this.discipline, this.offering, function foundDisciplineOffering(error, offering) {
+    next(!error && !!offering);
+  });
+}, 'discipline offering not found');
 
 module.exports = mongoose.model('Discipline', schema);

@@ -223,4 +223,12 @@ schema.virtual('courseProgress').get(function historyCourseProgress() {
   return creditsDone / totalCredits;
 });
 
+schema.path('modality').validate(function validateIfCourseModalityExists(value, next) {
+  'use strict';
+
+  return courses.modality(this.year, this.course + '-' + this.modality, function foundCourseModality(error, modality) {
+    next(!error && !!modality);
+  }.bind(this));
+}, 'course modality not found');
+
 module.exports = mongoose.model('History', schema);
