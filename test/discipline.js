@@ -26,86 +26,100 @@ describe('discipline controller', function () {
   describe('create', function () {
     before(Discipline.remove.bind(Discipline));
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error without changeDiscipline permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.set('csrf-token', 'userToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(403);
-      request.end(done);
-    });
-
-    it('should raise error with invalid history code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2012/disciplines');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(404);
-      request.end(done);
-    });
-
-    it('should raise error without discipline', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.set('csrf-token', 'adminToken');
-      request.send({'offering' : '2014-1-A'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('required');
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('offering').be.equal('required');
+    describe('without changeDiscipline permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.set('csrf-token', 'userToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(403);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should raise error without discipline and offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.set('csrf-token', 'adminToken');
-      request.expect(400);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('required');
-        response.body.should.have.property('offering').be.equal('required');
+    describe('without valid history code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2012/disciplines');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(404);
+        request.end(done);
       });
-      request.end(done);
     });
 
-    it('should create', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(201);
-      request.end(done);
+    describe('without discipline', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.set('csrf-token', 'adminToken');
+        request.send({'offering' : '2014-1-A'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('without offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('offering').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('without discipline and offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.set('csrf-token', 'adminToken');
+        request.expect(400);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('required');
+          response.body.should.have.property('offering').be.equal('required');
+        });
+        request.end(done);
+      });
+    });
+
+    describe('with valid credentials, discipline and offering', function () {
+      it('should create', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(201);
+        request.end(done);
+      });
     });
 
     describe('with code taken', function () {
@@ -137,49 +151,53 @@ describe('discipline controller', function () {
   describe('list', function () {
     before(Discipline.remove.bind(Discipline));
 
-    before(function (done) {
-      var request;
-      request = supertest(app);
-      request = request.post('/users/111111/histories/2014/disciplines');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC102'});
-      request.send({'offering' : '2014-1-A'});
-      request.end(done);
+    describe('without valid history code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2012/disciplines');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should raise error with invalid history code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/histories/2012/disciplines');
-      request.expect(404);
-      request.end(done);
-    });
+    describe('with one in database', function () {
+      before(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.post('/users/111111/histories/2014/disciplines');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC102'});
+        request.send({'offering' : '2014-1-A'});
+        request.end(done);
+      });
 
-    it('should list', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/histories/2014/disciplines');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.instanceOf(Array).with.lengthOf(1);
-        response.body.every(function (discipline) {
-          discipline.should.have.property('discipline');
-          discipline.should.have.property('offering');
+      it('should list 1 in first page', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.be.instanceOf(Array).with.lengthOf(1);
+          response.body.every(function (discipline) {
+            discipline.should.have.property('discipline');
+            discipline.should.have.property('offering');
+          });
         });
+        request.end(done);
       });
-      request.end(done);
-    });
 
-    it('should return empty in second page', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/histories/2014/disciplines');
-      request.send({'page' : 1});
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.be.instanceOf(Array).with.lengthOf(0);
+      it('should return empty in second page', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines');
+        request.send({'page' : 1});
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.be.instanceOf(Array).with.lengthOf(0);
+        });
+        request.end(done);
       });
-      request.end(done);
     });
   });
 
@@ -196,32 +214,38 @@ describe('discipline controller', function () {
       request.end(done);
     });
 
-    it('should raise error with invalid history code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/histories/2012/disciplines/MC102-2014-1-A');
-      request.expect(404);
-      request.end(done);
-    });
-
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/histories/2014/disciplines/invalid');
-      request.expect(404);
-      request.end(done);
-    });
-
-    it('should show', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.get('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.expect(200);
-      request.expect(function (response) {
-        response.body.should.have.property('discipline').be.equal('MC102');
-        response.body.should.have.property('offering').be.equal('2014-1-A');
+    describe('without valid history code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2012/disciplines/MC102-2014-1-A');
+        request.expect(404);
+        request.end(done);
       });
-      request.end(done);
+    });
+
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines/invalid');
+        request.expect(404);
+        request.end(done);
+      });
+    });
+
+    describe('with valid code', function () {
+      it('should show', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('MC102');
+          response.body.should.have.property('offering').be.equal('2014-1-A');
+        });
+        request.end(done);
+      });
     });
   });
 
@@ -238,87 +262,123 @@ describe('discipline controller', function () {
       request.end(done);
     });
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(403);
-      request.end(done);
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error without changeDiscipline permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'userToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(403);
-      request.end(done);
+    describe('without changeDiscipline permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'userToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error with invalid history code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2012/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(404);
-      request.end(done);
+    describe('without valid history code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2012/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/invalid');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(404);
-      request.end(done);
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/invalid');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should raise error without discipline', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'offering' : '2014-1-A'});
-      request.expect(400);
-      request.end(done);
+    describe('without discipline', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'offering' : '2014-1-A'});
+        request.expect(400);
+        request.end(done);
+      });
     });
 
-    it('should raise error without offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.expect(400);
-      request.end(done);
+    describe('without offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.expect(400);
+        request.end(done);
+      });
     });
 
-    it('should raise error without discipline and offering', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.expect(400);
-      request.end(done);
+    describe('without discipline and offering', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.expect(400);
+        request.end(done);
+      });
     });
 
-    it('should update', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.send({'discipline' : 'MC202'});
-      request.send({'offering' : '2014-1-A'});
-      request.expect(200);
-      request.end(done);
+    describe('with valid credentials, discipline and offering', function () {
+      it('should update', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.put('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.send({'discipline' : 'MC202'});
+        request.send({'offering' : '2014-1-A'});
+        request.expect(200);
+        request.end(done);
+      });
+
+      after(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.expect(404);
+        request.end(done);
+      });
+
+      after(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines/MC202-2014-1-A');
+        request.expect(200);
+        request.expect(function (response) {
+          response.body.should.have.property('discipline').be.equal('MC202');
+          response.body.should.have.property('offering').be.equal('2014-1-A');
+        });
+        request.end(done);
+      });
     });
 
     describe('with code taken', function () {
@@ -358,48 +418,66 @@ describe('discipline controller', function () {
       request.end(done);
     });
 
-    it('should raise error without token', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.expect(403);
-      request.end(done);
+    describe('without token', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error without changeDiscipline permission', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'userToken');
-      request.expect(403);
-      request.end(done);
+    describe('without changeDiscipline permission', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'userToken');
+        request.expect(403);
+        request.end(done);
+      });
     });
 
-    it('should raise error with invalid history code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/histories/2012/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.expect(404);
-      request.end(done);
+    describe('without valid history code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/histories/2012/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should raise error with invalid code', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/histories/2014/disciplines/invalid');
-      request.set('csrf-token', 'adminToken');
-      request.expect(404);
-      request.end(done);
+    describe('without valid code', function () {
+      it('should raise error', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/histories/2014/disciplines/invalid');
+        request.set('csrf-token', 'adminToken');
+        request.expect(404);
+        request.end(done);
+      });
     });
 
-    it('should delete', function (done) {
-      var request;
-      request = supertest(app);
-      request = request.del('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
-      request.set('csrf-token', 'adminToken');
-      request.expect(204);
-      request.end(done);
+    describe('with valid credentials and code', function () {
+      it('should delete', function (done) {
+        var request;
+        request = supertest(app);
+        request = request.del('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.set('csrf-token', 'adminToken');
+        request.expect(204);
+        request.end(done);
+      });
+
+      after(function (done) {
+        var request;
+        request = supertest(app);
+        request = request.get('/users/111111/histories/2014/disciplines/MC102-2014-1-A');
+        request.expect(404);
+        request.end(done);
+      });
     });
   });
 
