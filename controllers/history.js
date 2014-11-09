@@ -285,7 +285,7 @@ router.param('history', function findHistory(request, response, next, id) {
   var query;
   query = History.findOne();
   query.where('user').equals(request.params.user);
-  query.where('year').equals(id);
+  query.where('year').equals(isNaN(id) ? 0 : id);
   query.exec(function foundHistory(error, history) {
     if (error) {
       error = new VError(error, 'error finding history: ""', history);
